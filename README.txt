@@ -1,4 +1,4 @@
-# EDA PROJECT - FOOTBALL DATA ANALYSIS AND SAKILA DATABASE
+# EDA PROJECT - FOOTBALL DATA ANALYSIS 
 
 This project provides the infrastructure for analyzing football data, including preprocessing, automated loading into a MariaDB database, and exploratory data analysis using Jupyter Notebook. The Sakila database is also included for additional experimentation.
 
