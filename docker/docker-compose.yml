@@ -1,0 +1,67 @@
+services:
+  mariadb:
+    image: mariadb:10.5
+    container_name: mariadb
+    hostname: mariadb
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3305:3306"
+    # Mount the 'mariadb_data' directory as a volume,
+    # and 'extra' to execute (if needed) the .sql initialization scripts
+    volumes:
+      - ../extra/mariadb_data:/var/lib/mysql
+      - ../extra:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MARIADB_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Container responsible for automatically inserting data
+  data_loader:
+    image: python:3.9-slim
+    container_name: data_loader
+    depends_on:
+      mariadb:
+        condition: service_healthy  # Starts only when MariaDB is "healthy"
+    environment:
+      # Passing database credentials via environment variables
+      MARIADB_HOST: mariadb
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      # Mount CSV files inside the container (at /app/csvs)
+      - ../extra/csvs:/app/csvs
+      # Mount the Python script containing the data insertion logic
+      - ../notebooks/insert_data_script.py:/app/insert_data_script.py
+    working_dir: /app
+    command: >
+      sh -c "
+      pip install --no-cache-dir pymysql pandas &&
+      python /app/insert_data_script.py
+      "
+    restart: "no"   # Runs only once and then stops
+
+  # (Optional) Jupyter Lab, if needed
+  jupyterlab:
+    image: jupyter/scipy-notebook:latest
+    container_name: jupyter_eda
+    restart: always
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../notebooks:/home/jovyan/work
+      - ../extra/csvs:/home/jovyan/csvs
+      - ../extra:/extra
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    command: >
+      sh -c "
+      pip install pymysql &&
+      start-notebook.sh"
