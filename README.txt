@@ -1,7 +1,3 @@
-Here is your **cleaned and final version** of the `README.txt`, without bold formatting but keeping the structure clear and easy to read.
-
----
-
 # EDA PROJECT - FOOTBALL DATA ANALYSIS AND SAKILA DATABASE
 
 This project provides the infrastructure for analyzing football data, including preprocessing, automated loading into a MariaDB database, and exploratory data analysis using Jupyter Notebook. The Sakila database is also included for additional experimentation.
